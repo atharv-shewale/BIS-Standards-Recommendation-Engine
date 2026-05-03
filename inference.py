@@ -48,7 +48,8 @@ def main():
         query_metadata = query_parser.parse(query_text)
         
         # 2. Hybrid Retrieval & Re-ranking (Initial filter)
-        candidates = retriever.retrieve(query_text, query_metadata, top_k=50)
+        # We fetch 20 high-quality candidates to pass to the LLM
+        candidates = retriever.retrieve(query_text, query_metadata, top_k_hybrid=100, top_k_final=20)
         
         # 3. Final Selection & Justification (The 'Intelligence' Step)
         # Use LLM once per query to select top 5 from candidates and explain

@@ -2,18 +2,17 @@ import re
 
 class QueryParser:
     def __init__(self):
-        # Extremely fast rule-based dictionaries for compliance intelligence
         self.materials = [
-            "cement", "concrete", "steel", "aggregate", "aggregates", 
-            "masonry", "timber", "wood", "gypsum", "bitumen", "tar", 
-            "glass", "plastic", "asbestos", "ferrocement", "pozzolana", "slag", "clinker", "coir", "sand"
+            "cement", "concrete", "steel", "aggregate", "masonry", "timber", "wood", "gypsum", 
+            "bitumen", "tar", "glass", "plastic", "asbestos", "ferrocement", "pozzolana", "slag", 
+            "clinker", "coir", "sand", "ppc", "opc", "psc"
         ]
         
         self.applications = [
             "structural", "marine", "reinforcement", "roofing", "cladding",
-            "masonry", "flooring", "water mains", "paving", "insulation",
+            "flooring", "water mains", "paving", "insulation",
             "foundation", "precast", "corrugated", "hollow", "solid", "architectural", "decorative",
-            "blocks", "pipes", "sheets"
+            "blocks", "pipes", "sheets", "dams", "bridges"
         ]
         
         self.properties = [
@@ -26,28 +25,30 @@ class QueryParser:
         query_lower = query.lower()
         
         extracted = {
-            "material": "",
-            "application": "",
-            "properties": []
+            "material": "general",
+            "application": "general",
+            "properties": [],
+            "standard_ids": []
         }
         
-        # Extract Material (can match multiple and join, or just take first. Let's take all matched for robustness)
-        matched_mats = []
+        # 1. Extract Standard IDs (e.g., IS 456, IS:456, IS 12269)
+        std_matches = re.findall(r'\bIS\s*:?\s*(\d+)\b', query.upper())
+        for match in std_matches:
+            extracted["standard_ids"].append(f"IS {match}")
+            
+        # 2. Extract Material
         for mat in self.materials:
             if re.search(r'\b' + re.escape(mat) + r'\b', query_lower):
-                matched_mats.append(mat)
-        if matched_mats:
-            extracted["material"] = matched_mats[0] # primary material
+                extracted["material"] = mat
+                break
             
-        # Extract Application
-        matched_apps = []
+        # 3. Extract Application
         for app in self.applications:
             if re.search(r'\b' + re.escape(app) + r'\b', query_lower):
-                matched_apps.append(app)
-        if matched_apps:
-            extracted["application"] = matched_apps[0]
+                extracted["application"] = app
+                break
                 
-        # Extract Properties
+        # 4. Extract Properties
         for prop in self.properties:
             if re.search(r'\b' + re.escape(prop) + r'\b', query_lower):
                 extracted["properties"].append(prop)
